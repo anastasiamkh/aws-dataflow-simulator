@@ -1,19 +1,148 @@
 from aws_cdk import (
-    # Duration,
     Stack,
-    # aws_sqs as sqs,
+    RemovalPolicy,
+    aws_cloudwatch as cloudwatch,
+    aws_iam as iam,
+    aws_kinesis as kinesis,
+    aws_sns as sns,
+    aws_ecs as ecs,
+    aws_ecs_patterns as ecs_patterns,
+    aws_ec2 as ec2,
+    aws_ecr as ecr,
+    aws_sns_subscriptions as subscriptions,
 )
+from aws_cdk.aws_ecr_assets import DockerImageAsset
 from constructs import Construct
 
-class CsvToKinesisStreamStack(Stack):
+import aws_cdk as core
+from aws_cdk import aws_s3 as s3
+from aws_cdk import aws_cloudwatch_actions as cloudwatch_actions
 
-    def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
-        super().__init__(scope, construct_id, **kwargs)
+import src.config as config
 
-        # The code that defines your stack goes here
 
-        # example resource
-        # queue = sqs.Queue(
-        #     self, "CsvToKinesisStreamQueue",
-        #     visibility_timeout=Duration.seconds(300),
-        # )
+class DatasetToStreamStack(Stack):
+    def __init__(self, scope: Construct, id: str, **kwargs) -> None:
+        super().__init__(scope, id, **kwargs)
+
+        self.bucket = self._add_s3_bucket()
+        self.kinesis_stream = self._add_kinesis_stream()
+        self.ecr_repository = self._add_ecr_repository()
+        self.fargate_service = self._get_fargate_service()
+        self._add_cloudwatch_alarm()
+
+    def _add_s3_bucket(self):
+        # S3 Bucket
+        bucket = s3.Bucket(
+            self,
+            "CsvKinesisProjectBucket",
+            bucket_name=config.get_s3_bucket_name(),
+            versioned=False,
+            removal_policy=RemovalPolicy.DESTROY,  # Allows bucket deletion
+            auto_delete_objects=True,  # Optional: Automatically delete objects in the bucket
+        )
+        # Outputs
+        core.CfnOutput(self, "BucketName", value=bucket.bucket_name)
+        return bucket
+
+    def _add_kinesis_stream(self):
+        kinesis_stream = kinesis.Stream(
+            self, "DataStream", shard_count=1, removal_policy=core.RemovalPolicy.DESTROY
+        )
+        return kinesis_stream
+
+    def _add_ecr_repository(self):
+        # Create an ECR repository to store the Docker image
+        ecr_repository = ecr.Repository(
+            self,
+            "FargateRepository",
+            repository_name=config.get_ecr_repo_name(),
+            removal_policy=core.RemovalPolicy.DESTROY,
+        )
+        # Build and push the Docker image to the ECR repository
+        self.docker_image = DockerImageAsset(
+            self,
+            "CsvToKinesisImage",
+            directory=".",  # Directory containing the Dockerfile
+        )
+
+        # Optional: Output the repository URI
+        core.CfnOutput(self, "ECRRepositoryURI", value=ecr_repository.repository_uri)
+        return ecr_repository
+
+    def _get_fargate_service(self):
+        # Create an ECS cluster
+        vpc = ec2.Vpc(self, "Vpc", max_azs=2)  # VPC for ECS
+        vpc.apply_removal_policy(core.RemovalPolicy.DESTROY)
+        cluster = ecs.Cluster(self, "EcsCluster", vpc=vpc)
+
+        # Define a Fargate task definition with the necessary IAM role
+        task_role = iam.Role(
+            self,
+            "FargateTaskExecutionRole",
+            assumed_by=iam.ServicePrincipal("ecs-tasks.amazonaws.com"),
+            managed_policies=[
+                iam.ManagedPolicy.from_aws_managed_policy_name(
+                    "service-role/AmazonECSTaskExecutionRolePolicy"
+                ),
+                iam.ManagedPolicy.from_aws_managed_policy_name("AmazonKinesisFullAccess"),
+                iam.ManagedPolicy.from_aws_managed_policy_name("AmazonS3ReadOnlyAccess"),
+            ],
+        )
+
+        task_definition = ecs.FargateTaskDefinition(
+            self,
+            "FargateTaskDefinition",
+            memory_limit_mib=1024,
+            cpu=512,
+            task_role=task_role,
+        )
+
+        # Add the container to the task definition
+        container = task_definition.add_container(
+            "FargateContainer",
+            image=ecs.ContainerImage.from_docker_image_asset(self.docker_image),
+            logging=ecs.LogDrivers.aws_logs(stream_prefix="FargateContainer"),
+        )
+        # Add a port mapping to the container
+        container.add_port_mappings(ecs.PortMapping(container_port=80, host_port=80))
+        # Define the Fargate service
+        fargate_service = ecs_patterns.ApplicationLoadBalancedFargateService(
+            self,
+            "FargateService",
+            cluster=cluster,
+            task_definition=task_definition,
+            public_load_balancer=False,  # This sets whether the load balancer should be public or not
+        )
+        # Grant the necessary permissions to the task
+        self.bucket.grant_read(task_role)
+        return fargate_service
+
+    def _add_cloudwatch_alarm(self):
+        """Setup CloudWatch Billing Alarm"""
+        # Create an SNS Topic for sending the alarm notification
+        topic = sns.Topic(self, "BillingAlarmTopic")
+
+        # Add an email subscription to the SNS Topic
+        topic.add_subscription(
+            subscriptions.EmailSubscription(config.get_notifications_email())
+        )
+        # Define a CloudWatch Billing Alarm
+        cost_alarm = cloudwatch.Alarm(
+            self,
+            "BillingAlarm",
+            metric=cloudwatch.Metric(
+                namespace="AWS/Billing",
+                metric_name="EstimatedCharges",
+                dimensions_map={"Currency": "EUR"},
+                period=core.Duration.hours(6),
+                statistic="Maximum",
+            ),
+            threshold=config.billing_alarm_threshold(),  # Set your threshold here (e.g., 100 USD)
+            evaluation_periods=1,
+            alarm_description=f"Alarm when estimated charges exceed {config.billing_alarm_threshold()}",
+            actions_enabled=True,
+        )
+
+        # Add the SNS Topic as an alarm action
+        cost_alarm.add_alarm_action(cloudwatch_actions.SnsAction(topic))

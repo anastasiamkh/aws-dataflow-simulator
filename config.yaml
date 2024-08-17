@@ -1,0 +1,10 @@
+aws:
+  s3_bucket_name: 'csv-to-kinesis-bucket'
+  kinesis_stream_name: "csv-to-kinesis-stream"
+  ecr_repo_name: "csv-to-kinesis-repo"
+  notifications_email: "nastja.makhonina@gmail.com"
+  cloudwatch_billing_alarm_threshold_eur: 20
+
+dataset:
+  filepath: 'data/credit_record.csv'
+  s3_filepath: 'data/credit_record.csv'
