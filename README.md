@@ -40,11 +40,12 @@ https://github.com/aws-samples/localstack-aws-cdk-example
 `cdk deploy --require-approval never`
 
 # To Do List
-[] Add time delay to streaming based on timestamp difference between rows
-[] Add digrams (CDK Stack & Pipeline)
-[] Add installation instructions & usage with other AWS account & csv files
-[] Add support for other data formats
-[] Add usage ideas
-[] make sure no extra files are packages
-[] add unit tests
-[] add basic CI/CD pipeine for linting-testing-publishing
+- [] Add time delay to streaming based on timestamp difference between rows
+- [] add interactive config.yaml generator that overwrites the template
+- [] Add digrams (CDK Stack & Pipeline)
+- [] Add installation instructions & usage with other AWS account & csv files
+- [] Add support for other data formats
+- [] Add usage ideas
+- [] make sure no extra files are packages
+- [] add unit tests
+- [] add basic CI/CD pipeine for linting-testing-publishing
