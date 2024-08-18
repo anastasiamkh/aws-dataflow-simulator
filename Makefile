@@ -10,6 +10,9 @@ lint:
 	poetry run black . &&\
 	poetry run ruff format
 
+unit-tests:
+	poetry run pytest tests/
+
 docker-build:
 	docker buildx build --platform=linux/amd64 -t csv-to-kinesis-image .
 
