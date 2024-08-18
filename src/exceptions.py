@@ -1,4 +1,4 @@
-"""Custome Exceptions."""
+"""Custom Exceptions."""
 
 
 class CouldNotLoadFileFromS3(Exception):

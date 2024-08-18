@@ -1,23 +1,15 @@
 #!/usr/bin/env python3
-import aws_cdk as cdk
+import aws_cdk as core
 
-from csv_to_kinesis_stream.csv_to_kinesis_stream_stack import DataEngineeringStack
+from stacks.streaming_stack import StreamingStack
+from stacks.s3_stack import S3BucketStack
 
+app = core.App()
 
-app = cdk.App()
-DataEngineeringStack(
-    app,
-    "DataEngineeringStack",
-    # If you don't specify 'env', this stack will be environment-agnostic.
-    # Account/Region-dependent features and context lookups will not work,
-    # but a single synthesized template can be deployed anywhere.
-    # Uncomment the next line to specialize this stack for the AWS Account
-    # and Region that are implied by the current CLI configuration.
-    # env=cdk.Environment(account=os.getenv('CDK_DEFAULT_ACCOUNT'), region=os.getenv('CDK_DEFAULT_REGION')),
-    # Uncomment the next line if you know exactly what Account and Region you
-    # want to deploy the stack to. */
-    # env=cdk.Environment(account='123456789012', region='us-east-1'),
-    # For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html
-)
+# Deploy the first stack and create the S3 bucket
+s3_stack = S3BucketStack(app, "S3BucketStack")
+
+# Deploy the second stack, passing the S3 bucket from the first stack
+main_stack = StreamingStack(app, "StreamingStack", bucket=s3_stack.bucket)
 
 app.synth()

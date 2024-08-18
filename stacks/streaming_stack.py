@@ -1,6 +1,5 @@
 from aws_cdk import (
     Stack,
-    RemovalPolicy,
     aws_cloudwatch as cloudwatch,
     aws_iam as iam,
     aws_kinesis as kinesis,
@@ -8,73 +7,56 @@ from aws_cdk import (
     aws_ecs as ecs,
     aws_ecs_patterns as ecs_patterns,
     aws_ec2 as ec2,
-    aws_ecr as ecr,
+    aws_s3 as s3,
     aws_sns_subscriptions as subscriptions,
 )
-from aws_cdk.aws_ecr_assets import DockerImageAsset
+from aws_cdk.aws_ecr_assets import DockerImageAsset, Platform
 from constructs import Construct
 
 import aws_cdk as core
-from aws_cdk import aws_s3 as s3
 from aws_cdk import aws_cloudwatch_actions as cloudwatch_actions
+
+import os
 
 import src.config as config
 
 
-class DatasetToStreamStack(Stack):
-    def __init__(self, scope: Construct, id: str, **kwargs) -> None:
+class StreamingStack(Stack):
+    def __init__(self, scope: Construct, id: str, bucket: s3.Bucket, **kwargs) -> None:
         super().__init__(scope, id, **kwargs)
 
-        self.bucket = self._add_s3_bucket()
+        self.bucket = bucket  # from S3BucketStack
         self.kinesis_stream = self._add_kinesis_stream()
-        self.ecr_repository = self._add_ecr_repository()
+        self.docker_image = self._build_docker_image()
         self.fargate_service = self._get_fargate_service()
         self._add_cloudwatch_alarm()
 
-    def _add_s3_bucket(self):
-        # S3 Bucket
-        bucket = s3.Bucket(
-            self,
-            "CsvKinesisProjectBucket",
-            bucket_name=config.get_s3_bucket_name(),
-            versioned=False,
-            removal_policy=RemovalPolicy.DESTROY,  # Allows bucket deletion
-            auto_delete_objects=True,  # Optional: Automatically delete objects in the bucket
-        )
-        # Outputs
-        core.CfnOutput(self, "BucketName", value=bucket.bucket_name)
-        return bucket
+        return None
 
     def _add_kinesis_stream(self):
         kinesis_stream = kinesis.Stream(
             self, "DataStream", shard_count=1, removal_policy=core.RemovalPolicy.DESTROY
         )
+        os.environ["KINESIS_STREAM_NAME"] = kinesis_stream.stream_name
+        core.CfnOutput(self, "KinesisStreamName", value=kinesis_stream.stream_name)
         return kinesis_stream
 
-    def _add_ecr_repository(self):
-        # Create an ECR repository to store the Docker image
-        ecr_repository = ecr.Repository(
-            self,
-            "FargateRepository",
-            repository_name=config.get_ecr_repo_name(),
-            removal_policy=core.RemovalPolicy.DESTROY,
-        )
-        # Build and push the Docker image to the ECR repository
-        self.docker_image = DockerImageAsset(
+    def _build_docker_image(self):
+        docker_image = DockerImageAsset(
             self,
             "CsvToKinesisImage",
+            platform=Platform.LINUX_AMD64,
             directory=".",  # Directory containing the Dockerfile
         )
 
-        # Optional: Output the repository URI
-        core.CfnOutput(self, "ECRRepositoryURI", value=ecr_repository.repository_uri)
-        return ecr_repository
+        return docker_image
 
     def _get_fargate_service(self):
         # Create an ECS cluster
         vpc = ec2.Vpc(self, "Vpc", max_azs=2)  # VPC for ECS
         vpc.apply_removal_policy(core.RemovalPolicy.DESTROY)
         cluster = ecs.Cluster(self, "EcsCluster", vpc=vpc)
+        cluster.node.add_dependency(self.kinesis_stream)
 
         # Define a Fargate task definition with the necessary IAM role
         task_role = iam.Role(
@@ -85,8 +67,12 @@ class DatasetToStreamStack(Stack):
                 iam.ManagedPolicy.from_aws_managed_policy_name(
                     "service-role/AmazonECSTaskExecutionRolePolicy"
                 ),
-                iam.ManagedPolicy.from_aws_managed_policy_name("AmazonKinesisFullAccess"),
-                iam.ManagedPolicy.from_aws_managed_policy_name("AmazonS3ReadOnlyAccess"),
+                iam.ManagedPolicy.from_aws_managed_policy_name(
+                    "AmazonKinesisFullAccess"
+                ),
+                iam.ManagedPolicy.from_aws_managed_policy_name(
+                    "AmazonS3ReadOnlyAccess"
+                ),
             ],
         )
 
@@ -103,6 +89,7 @@ class DatasetToStreamStack(Stack):
             "FargateContainer",
             image=ecs.ContainerImage.from_docker_image_asset(self.docker_image),
             logging=ecs.LogDrivers.aws_logs(stream_prefix="FargateContainer"),
+            environment={"KINESIS_STREAM_NAME": self.kinesis_stream.stream_name},
         )
         # Add a port mapping to the container
         container.add_port_mappings(ecs.PortMapping(container_port=80, host_port=80))
