@@ -56,3 +56,13 @@ command.
  * `cdk docs`        open CDK documentation
 
 Enjoy!
+
+
+## Testing CDK stack locally
+https://github.com/aws-samples/localstack-aws-cdk-example
+1. Install awslocal, localstack, cdklocal
+`brew install localstack/tap/localstack-cli awscli-local && npm install -g aws-cdk-local`
+2. Bootstrap local env
+`cdklocal bootstrap`
+3. Deploy local stack
+`cdk deploy --require-approval never`

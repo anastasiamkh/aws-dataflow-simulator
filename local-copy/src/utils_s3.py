@@ -17,7 +17,9 @@ def upload_file_to_s3(bucket_name: str, filepath: str):
     try:
         s3_client.upload_file(filepath, bucket_name, filepath)
     except Exception as e:
-        raise CouldNotUploadFileToS3(f"Failed to upload {filepath} to {bucket_name}: {e}")
+        raise CouldNotUploadFileToS3(
+            f"Failed to upload {filepath} to {bucket_name}: {e}"
+        )
     print(f"Successfully uploaded {filepath} to {bucket_name}")
     return
 

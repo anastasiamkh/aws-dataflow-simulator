@@ -40,3 +40,11 @@ docker-push:
 	aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com &&\
 	docker tag csv-to-kinesis:latest ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/csv-to-kinesis-repo:latest &&\
 	docker push ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/csv-to-kinesis-repo:latest
+
+deploy-stacks:
+	cdk deploy S3BucketStack &&\
+	poetry run python src/utils_s3.py upload_file_to_s3 'csv-to-kinesis-bucket' 'data/credit_record.csv' &&\
+	cdk deploy StreamingStack
+
+depstroy-stacks:
+	cdk destroy

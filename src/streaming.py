@@ -11,10 +11,6 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-s3_client = boto3.client("s3")
-kinesis_client = boto3.client("kinesis")
-
-
 class CSVtoStream:
     def __init__(self):
         """Read the environmental variables."""
@@ -24,15 +20,14 @@ class CSVtoStream:
 
         # clients to connect to AWS services
         self._kinesis_client = boto3.client("kinesis")
-        self._s3_client = s3_client
 
     def load_dataset(self):
-        response = download_file_from_s3(
+        decoded_cdv_data = download_file_from_s3(
             bucket_name=self.bucket_name, filepath=self.dataset_filepath
         )
 
         # parse the file
-        file_content = response["Body"].read().decode("utf-8").splitlines()
+        file_content = decoded_cdv_data.splitlines()
 
         return file_content
 
@@ -53,7 +48,7 @@ class CSVtoStream:
         for row in csv_reader:
             data = ",".join(row)
             logging.info(f"Streaming row to Kinesis: {data}")
-            kinesis_client.put_record(
+            self._kinesis_client.put_record(
                 StreamName=self.kinesis_stream_name,
                 Data=data,
                 PartitionKey=row[
