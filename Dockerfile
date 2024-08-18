@@ -5,6 +5,7 @@ RUN apt-get update && apt-get install -y gcc libpq-dev
 
 # Set the working directory
 WORKDIR /app
+ENV PYTHONPATH=/app
 
 # Install Poetry
 RUN pip install poetry
