@@ -1,5 +1,5 @@
 # `aws-dataflow-simulator`
-`aws-dataflow-simulator` is a Python package that simplifies the creation of AWS infrastructure for simulating real-time data streams and batch processing, particularly useful for machine learning (ML) projects. This guide will walk you through the setup of a real-time data streaming solution, where rows from a CSV file are streamed as events using AWS CDK.
+`aws-dataflow-simulator` is a Python package that simplifies the creation of AWS infrastructure for simulating real-time data streams and batch processing, particularly useful for machine learning (ML) projects. This guide will walk you through the setup of a real-time data streaming solution, where rows from a CSV file are streamed as events using AWS services provisioned with AWS CDK.
 
 ### Prerequisites
 Before you start, ensure you have the following:
@@ -12,18 +12,15 @@ Before you start, ensure you have the following:
 
 ### Installation
 1. Install the Package
-First, install the aws-dataflow-simulator package using pip:
+First, install the `aws-dataflow-simulator` package using pip: `pip install aws-dataflow-simulator`
 
-bash
-Copy code
-pip install aws-dataflow-simulator
-2. Install AWS CDK
-Ensure that AWS CDK is installed globally on your machine:
+2. Install AWS CDK: `npm install -g aws-cdk`
+3. Configure aws cli on your machine with `aws configure` or using environmental variables.
+# TODO: add link or detailed instructions
 
-bash
-Copy code
-npm install -g aws-cdk
-3. Set Up Your Project
+4. Set Up Your Project
+1. Create config using cli commands -> YAML config #TODO
+2. Add your file
 Initialize your project with the AWS CDK:
 
 bash
@@ -41,3 +38,13 @@ https://github.com/aws-samples/localstack-aws-cdk-example
 `cdklocal bootstrap`
 3. Deploy local stack
 `cdk deploy --require-approval never`
+
+# To Do List
+[] Add time delay to streaming based on timestamp difference between rows
+[] Add digrams (CDK Stack & Pipeline)
+[] Add installation instructions & usage with other AWS account & csv files
+[] Add support for other data formats
+[] Add usage ideas
+[] make sure no extra files are packages
+[] add unit tests
+[] add basic CI/CD pipeine for linting-testing-publishing
