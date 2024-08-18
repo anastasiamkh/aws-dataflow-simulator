@@ -17,9 +17,7 @@ def upload_file_to_s3(bucket_name: str, filepath: str):
     try:
         s3_client.upload_file(filepath, bucket_name, filepath)
     except Exception as e:
-        raise CouldNotUploadFileToS3(
-            f"Failed to upload {filepath} to {bucket_name}: {e}"
-        )
+        raise CouldNotUploadFileToS3(f"Failed to upload {filepath} to {bucket_name}: {e}")
     print(f"Successfully uploaded {filepath} to {bucket_name}")
     return
 
@@ -32,13 +30,17 @@ def download_file_from_s3(bucket_name: str, filepath: str) -> Any:
     """
     s3_client = boto3.client("s3")
 
-    response = s3_client.get_object(Bucket=bucket_name, Key=filepath)
+    # response = s3_client.get_object(Bucket=bucket_name, Key=filepath)
+    try:
+        # Download the CSV file from S3 into memory
+        csv_obj = s3_client.get_object(Bucket=bucket_name, Key=filepath)
+        body = csv_obj["Body"].read().decode("utf-8")
 
-    if response.status_code != 200:
+    except Exception as e:
         raise CouldNotLoadFileFromS3(
-            f"Could not load file {filepath} from bucket {bucket_name}"
+            f"Could not load file {filepath} from bucket {bucket_name}: {str(e)}"
         )
-    return response
+    return body
 
 
 if __name__ == "__main__":
