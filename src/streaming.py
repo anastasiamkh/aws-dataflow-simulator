@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 class CSVtoStream:
-    def __init__(self):
+    def __init__(self, simulate_time_delay: bool = True):
         """Read the environmental variables."""
         self.bucket_name: str = config.get_s3_bucket_name()
         self.dataset_filepath: str = config.get_dataset_filepath()
@@ -69,4 +69,4 @@ class CSVtoStream:
 
 
 if __name__ == "__main__":
-    CSVtoStream().start_stream()
+    CSVtoStream().start_stream(simulate_time_delay=True)

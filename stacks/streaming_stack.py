@@ -37,7 +37,7 @@ class StreamingStack(Stack):
         kinesis_stream = kinesis.Stream(
             self, "DataStream", shard_count=1, removal_policy=core.RemovalPolicy.DESTROY
         )
-        os.environ["KINESIS_STREAM_NAME"] = kinesis_stream.stream_nam
+        os.environ["KINESIS_STREAM_NAME"] = kinesis_stream.stream_name
         core.CfnOutput(self, "KinesisStreamName", value=kinesis_stream.stream_name)
         return kinesis_stream
 
