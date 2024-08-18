@@ -10,6 +10,7 @@ source.bat
 # CDK asset staging directory
 .cdk.staging
 cdk.out
+cdk.json
 
 node_modules/
 package.json
