@@ -5,6 +5,10 @@ description = "A Python package for simulating data flows on AWS, including real
 authors = ["anastasiamkh <mlopsgeek@gmail.com>"]
 readme = "README.md"
 
+# Add this section
+[tool.poetry.scripts]
+dataflowsim = "aws_dataflow_simulator.cli:cli"
+
 [tool.poetry.dependencies]
 python = "^3.11"
 constructs = ">=10.0.0,<11.0.0"

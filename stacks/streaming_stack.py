@@ -29,7 +29,9 @@ class StreamingStack(Stack):
         self.kinesis_stream = self._add_kinesis_stream()
         self.docker_image = self._build_docker_image()
         self.fargate_service = self._get_fargate_service()
-        self._add_cloudwatch_alarm()
+
+        if config.get_billing_alarm_threshold() > 0:
+            self._add_cloudwatch_alarm()
 
         return None
 
@@ -125,7 +127,7 @@ class StreamingStack(Stack):
                 period=core.Duration.hours(6),
                 statistic="Maximum",
             ),
-            threshold=config.billing_alarm_threshold(),  # Set your threshold here (e.g., 100 USD)
+            threshold=config.get_billing_alarm_threshold(),  # Set your threshold here (e.g., 100 USD)
             evaluation_periods=1,
             alarm_description=f"Alarm when estimated charges exceed {config.billing_alarm_threshold()}",
             actions_enabled=True,

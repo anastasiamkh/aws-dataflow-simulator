@@ -24,4 +24,4 @@ RUN chmod +x /app
 EXPOSE 80
 # Command to run your Python script
 ENTRYPOINT ["poetry", "run"]
-CMD ["python", "src/streaming.py"]
+CMD ["python", "src/dataflow/stream.py"]

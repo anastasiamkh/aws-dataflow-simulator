@@ -4,7 +4,7 @@ import aws_cdk as core
 from aws_cdk import aws_s3 as s3, RemovalPolicy
 from constructs import Construct
 
-import src.config as config
+import aws_dataflow_simulator.config as config
 
 
 class S3BucketStack(core.Stack):
