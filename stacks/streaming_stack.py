@@ -67,12 +67,8 @@ class StreamingStack(Stack):
                 iam.ManagedPolicy.from_aws_managed_policy_name(
                     "service-role/AmazonECSTaskExecutionRolePolicy"
                 ),
-                iam.ManagedPolicy.from_aws_managed_policy_name(
-                    "AmazonKinesisFullAccess"
-                ),
-                iam.ManagedPolicy.from_aws_managed_policy_name(
-                    "AmazonS3ReadOnlyAccess"
-                ),
+                iam.ManagedPolicy.from_aws_managed_policy_name("AmazonKinesisFullAccess"),
+                iam.ManagedPolicy.from_aws_managed_policy_name("AmazonS3ReadOnlyAccess"),
             ],
         )
 
@@ -125,7 +121,7 @@ class StreamingStack(Stack):
                 period=core.Duration.hours(6),
                 statistic="Maximum",
             ),
-            threshold=config.billing_alarm_threshold(),  # Set your threshold here (e.g., 100 USD)
+            threshold=config.get_billing_alarm_threshold(),  # Set your threshold here (e.g., 100 USD)
             evaluation_periods=1,
             alarm_description=f"Alarm when estimated charges exceed {config.billing_alarm_threshold()}",
             actions_enabled=True,

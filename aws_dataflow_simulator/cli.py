@@ -57,7 +57,7 @@ def cli():
     prompt="First Event Date (YYYY-MM-DD HH-MM-SS)",
     help="The first event date and time in the dataset",
     required=False,
-    default=datetime.now().strftime("%Y-%M-%D %HH-%MM-%SS"),
+    default=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
 )
 @click.option(
     "--dataset-apply-delay",
@@ -181,14 +181,14 @@ def dataset():
 
 
 @dataset.command()
-def prepare_dataset():
+def prepare():
     """Preparing dataset for streaming."""
     click.echo("Preparing dataset for streaming.")
-    dataset_path = config.get_dataset_filepath()
+    dataset_path = config.get_dataset_filepath(processed=False)
     apply_delay = config.get_apply_delay()
     delay_ms = config.get_delay_ms()
-    timestamp_column_name = config.get_datetime_column_name()
-    start_datetime = config.get_first_event_datetime()
+    timestamp_column_name = config.get_colname_dt()
+    start_datetime = config.get_first_event_dt()
 
     click.echo(f"Preparing dataset {dataset_path} for streaming.")
     if apply_delay:
@@ -197,13 +197,17 @@ def prepare_dataset():
         else:
             click.echo(f"Calculating event delay using dt column {timestamp_column_name}")
 
-    utils_dataset.preprocess_dataset(
+    df_processed = utils_dataset.preprocess_dataset(
         dataset_path=dataset_path,
         start_datetime=start_datetime,
         apply_delay=apply_delay,
         delay_ms=delay_ms,
         timestamp_column_name=timestamp_column_name,
     )
+
+    base_name, ext = os.path.splitext(dataset_path)
+    new_filepath = f"{base_name}_processed{ext}"
+    df_processed.to_csv(new_filepath, index=False)
 
 
 # Add the s3 and dataset groups to the main CLI group
