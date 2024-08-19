@@ -13,6 +13,8 @@ data/
 cdk.out
 cdk.json
 
+dataflow_config.yaml
+
 node_modules/
 package.json
 local-copy/
