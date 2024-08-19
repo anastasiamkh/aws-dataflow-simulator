@@ -1,12 +1,12 @@
 aws:
   cloudwatch_alarm_thresh: 10.0
-  ecr_repo_name: some-repo
-  notifications_email: hfhf@gmail.com
+  ecr_repo_name: some-ecr-repo
+  notifications_email: your.email@gmail.com
   kinesis_shard_count: 2
-  s3_bucket_name: some-bucket
+  s3_bucket_name: some-s3-bucket
 dataset:
   apply_delay: true
-  colname_dt: 'tx_datetime'
+  colname_dt: 'column_datetime'
   delay_ms: -1
   filepath: data/example_dataset.csv
   filepath_processed: data/example_dataset_processed.csv

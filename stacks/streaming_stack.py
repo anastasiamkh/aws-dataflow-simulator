@@ -29,7 +29,9 @@ class StreamingStack(Stack):
         self.kinesis_stream = self._add_kinesis_stream()
         self.docker_image = self._build_docker_image()
         self.fargate_service = self._get_fargate_service()
-        self._add_cloudwatch_alarm()
+
+        if config.get_billing_alarm_threshold() > 0:
+            self._add_cloudwatch_alarm()
 
         return None
 
@@ -67,8 +69,12 @@ class StreamingStack(Stack):
                 iam.ManagedPolicy.from_aws_managed_policy_name(
                     "service-role/AmazonECSTaskExecutionRolePolicy"
                 ),
-                iam.ManagedPolicy.from_aws_managed_policy_name("AmazonKinesisFullAccess"),
-                iam.ManagedPolicy.from_aws_managed_policy_name("AmazonS3ReadOnlyAccess"),
+                iam.ManagedPolicy.from_aws_managed_policy_name(
+                    "AmazonKinesisFullAccess"
+                ),
+                iam.ManagedPolicy.from_aws_managed_policy_name(
+                    "AmazonS3ReadOnlyAccess"
+                ),
             ],
         )
 

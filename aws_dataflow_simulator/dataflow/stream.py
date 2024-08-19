@@ -75,4 +75,4 @@ class CSVtoStream:
 
 
 if __name__ == "__main__":
-    CSVtoStream().start_stream(simulate_time_delay=True)
+    CSVtoStream().start_stream()

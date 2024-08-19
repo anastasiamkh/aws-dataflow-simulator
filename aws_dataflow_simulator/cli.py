@@ -37,8 +37,16 @@ def cli():
     prompt="CloudWatch Billing Alarm Threshold (EUR)",
     help="The billing alarm threshold in EUR",
     type=float,
-    default=10,
+    default=-1,
     required=False,
+)
+@click.option(
+    "--kinesis-shard-count",
+    prompt="Number of shards in kinesis stream",
+    help="Number of shards in kinesis stream",
+    type=int,
+    default=1,
+    required=True,
 )
 @click.option(
     "--dataset-filepath",
@@ -87,6 +95,7 @@ def configure(
     aws_ecr_repo_name,
     aws_notifications_email,
     cloudwatch_alarm_thresh,
+    kinesis_shard_count,
     dataset_filepath,
     dataset_s3_filepath,
     streaming_start_datetime,
@@ -110,6 +119,7 @@ def configure(
             "s3_bucket_name": aws_s3_bucket_name,
             "ecr_repo_name": aws_ecr_repo_name,
             "notifications_email": aws_notifications_email,
+            "kinesis_shard_count": kinesis_shard_count,
             "cloudwatch_alarm_thresh": cloudwatch_alarm_thresh,
         },
         "dataset": {
@@ -195,7 +205,9 @@ def prepare():
         if delay_ms:
             click.echo(f"Calculating event delay using static value (ms): {delay_ms}")
         else:
-            click.echo(f"Calculating event delay using dt column {timestamp_column_name}")
+            click.echo(
+                f"Calculating event delay using dt column {timestamp_column_name}"
+            )
 
     df_processed = utils_dataset.preprocess_dataset(
         dataset_path=dataset_path,

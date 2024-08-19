@@ -42,6 +42,12 @@ def get_ecr_repo_name() -> str:
     return ecr_repo_name
 
 
+def get_kinesis_shard_count() -> int:
+    """Get number of shards to create with kinesis stream."""
+    kinesis_shard_count = aws_config["aws"]["kinesis_shard_count"]
+    return kinesis_shard_count
+
+
 def get_notifications_email() -> str:
     return aws_config["aws"]["notifications_email"]
 
