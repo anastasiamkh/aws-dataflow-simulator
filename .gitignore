@@ -6,6 +6,7 @@ __pycache__
 *.egg-info
 .DS_Store
 source.bat
+data/
 
 # CDK asset staging directory
 .cdk.staging
