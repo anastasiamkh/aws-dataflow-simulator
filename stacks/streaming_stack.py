@@ -18,7 +18,7 @@ from aws_cdk import aws_cloudwatch_actions as cloudwatch_actions
 
 import os
 
-import src.config as config
+import aws_dataflow_simulator.config as config
 
 
 class StreamingStack(Stack):
@@ -37,7 +37,10 @@ class StreamingStack(Stack):
 
     def _add_kinesis_stream(self):
         kinesis_stream = kinesis.Stream(
-            self, "DataStream", shard_count=1, removal_policy=core.RemovalPolicy.DESTROY
+            self,
+            "DataStream",
+            shard_count=config.get_kinesis_shard_count(),
+            removal_policy=core.RemovalPolicy.DESTROY,
         )
         os.environ["KINESIS_STREAM_NAME"] = kinesis_stream.stream_name
         core.CfnOutput(self, "KinesisStreamName", value=kinesis_stream.stream_name)
@@ -69,12 +72,8 @@ class StreamingStack(Stack):
                 iam.ManagedPolicy.from_aws_managed_policy_name(
                     "service-role/AmazonECSTaskExecutionRolePolicy"
                 ),
-                iam.ManagedPolicy.from_aws_managed_policy_name(
-                    "AmazonKinesisFullAccess"
-                ),
-                iam.ManagedPolicy.from_aws_managed_policy_name(
-                    "AmazonS3ReadOnlyAccess"
-                ),
+                iam.ManagedPolicy.from_aws_managed_policy_name("AmazonKinesisFullAccess"),
+                iam.ManagedPolicy.from_aws_managed_policy_name("AmazonS3ReadOnlyAccess"),
             ],
         )
 
@@ -117,6 +116,7 @@ class StreamingStack(Stack):
             subscriptions.EmailSubscription(config.get_notifications_email())
         )
         # Define a CloudWatch Billing Alarm
+        threshold = config.get_billing_alarm_threshold()
         cost_alarm = cloudwatch.Alarm(
             self,
             "BillingAlarm",
@@ -127,9 +127,9 @@ class StreamingStack(Stack):
                 period=core.Duration.hours(6),
                 statistic="Maximum",
             ),
-            threshold=config.get_billing_alarm_threshold(),  # Set your threshold here (e.g., 100 USD)
+            threshold=threshold,  # Set your threshold here (e.g., 100 USD)
             evaluation_periods=1,
-            alarm_description=f"Alarm when estimated charges exceed {config.billing_alarm_threshold()}",
+            alarm_description=f"Alarm when estimated charges exceed {threshold}",
             actions_enabled=True,
         )
 
