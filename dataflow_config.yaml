@@ -1,9 +1,9 @@
 aws:
   cloudwatch_alarm_thresh: 10.0
-  ecr_repo_name: some-repo
-  notifications_email: hfhf@gmail.com
+  ecr_repo_name: csv-to-kinesis-repo
+  notifications_email: nastja.makhonina@gmail.com
   kinesis_shard_count: 2
-  s3_bucket_name: some-bucket
+  s3_bucket_name: csv-to-kinesis-bucket
 dataset:
   apply_delay: true
   colname_dt: 'tx_datetime'

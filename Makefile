@@ -14,7 +14,7 @@ unit-tests:
 	poetry run pytest tests/
 
 docker-build:
-	docker buildx build --platform=linux/amd64 -t csv-to-kinesis-image .
+	docker buildx build --platform=linux/amd64 --no-cache -t csv-to-kinesis-image .
 
 docker-start:
 	docker run -d -p 80:80 --platform=linux/amd64 \
@@ -43,7 +43,7 @@ docker-push:
 
 deploy-stacks:
 	cdk deploy S3BucketStack &&\
-	poetry run python src/utils_s3.py upload_file_to_s3 'csv-to-kinesis-bucket' 'data/credit_record.csv' &&\
+	poetry run dataflowsim s3 upload data/example_dataset_processed.csv data/example_dataset_processed.csv csv-to-kinesis-bucket &&\
 	cdk deploy StreamingStack
 
 depstroy-stacks:

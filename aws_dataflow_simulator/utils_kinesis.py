@@ -13,7 +13,7 @@ kinesis_client = boto3.client("kinesis")
 
 
 # Read the header from the CSV file
-def get_csv_header(file_path=get_dataset_filepath()):
+def get_csv_header(file_path=get_dataset_filepath(processed=True)):
     with open(file_path, newline="") as csvfile:
         reader = csv.reader(csvfile)
         header = next(reader)  # Read the first line, which is the header

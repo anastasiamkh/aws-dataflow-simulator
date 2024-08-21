@@ -1,6 +1,6 @@
 import boto3
 import csv
-
+import json
 import logging
 import time
 
@@ -16,7 +16,7 @@ class CSVtoStream:
     def __init__(self):
         """Read the environmental variables."""
         self.bucket_name: str = config.get_s3_bucket_name()
-        self.dataset_filepath: str = config.get_dataset_filepath()
+        self.dataset_filepath: str = config.get_dataset_filepath(processed=True)
         self.kinesis_stream_name: str = config.get_kinesis_stream_name()
 
         # clients to connect to AWS services
@@ -33,9 +33,9 @@ class CSVtoStream:
         return file_content
 
     def start_stream(self) -> None:
-        """Conevrt rows in csv file on AWS S3 to events in AWS Kinesis stream"""
+        """Conevrt rows in csv file on AWS S3 to events in AWS Kinesis stream."""
 
-        csv_reader = csv.reader(self.load_dataset())
+        csv_reader = csv.DictReader(self.load_dataset())
 
         logger.info(
             {
@@ -45,15 +45,18 @@ class CSVtoStream:
                 "kinesis_stream_name": self.kinesis_stream_name,
             }
         )
+        # Skip the header row
+        header = next(csv_reader, None)
+
         # Process each row in the CSV file and send it to the Kinesis stream
         for row in csv_reader:
-            data = ",".join(row)
+            data = json.dumps(row)
             logging.info(f"Streaming row to Kinesis: {data}")
             self._kinesis_client.put_record(
                 StreamName=self.kinesis_stream_name,
                 Data=data,
                 PartitionKey=row[
-                    0
+                    next(iter(row))
                 ],  # Assuming the first column can be used as a partition key
             )
 
