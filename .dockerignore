@@ -1,9 +1,13 @@
 # Ignore CDK-related files and directories
 cdk.out/
 *.cdk.json
+cdk.json
+local-copy
 csv_to_kinesis_stream/
+package.josn
 
 data/
+stacks/
 
 # Ignore Node.js dependencies if using CDK with TypeScript/JavaScript
 node_modules/

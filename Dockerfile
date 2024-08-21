@@ -11,16 +11,13 @@ ENV PYTHONPATH=/app
 RUN pip install poetry
 
 # Copy Poetry configuration files
-COPY pyproject.toml poetry.lock /app/
+COPY . /app
+RUN chmod +x /app
 
 # Install dependencies
 RUN poetry config virtualenvs.create false \
     && poetry install --only main \
     && poetry run pip install -e .
-
-# Copy the rest of the application code
-COPY . /app
-RUN chmod +x /app
 
 EXPOSE 80
 # Command to run your Python script
