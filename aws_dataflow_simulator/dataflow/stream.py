@@ -50,7 +50,6 @@ class CSVtoStream:
 
         # Process each row in the CSV file and send it to the Kinesis stream
         for row in csv_reader:
-
             if "time_till_next_event_ms" in row:
                 delay_ms = int(float(row["time_till_next_event_ms"]))
             else:

@@ -192,7 +192,7 @@ def dataset():
 
 
 @dataset.command()
-def prepare():
+def streaming():
     """Preparing dataset for streaming."""
     click.echo("Preparing dataset for streaming.")
     dataset_path = config.get_dataset_filepath(processed=False)
@@ -206,11 +206,9 @@ def prepare():
         if delay_ms:
             click.echo(f"Calculating event delay using static value (ms): {delay_ms}")
         else:
-            click.echo(
-                f"Calculating event delay using dt column {timestamp_column_name}"
-            )
+            click.echo(f"Calculating event delay using dt column {timestamp_column_name}")
 
-    df_processed = utils_dataset.preprocess_dataset(
+    df_processed = utils_dataset.StreamingDataset.preprocess_dataset(
         dataset_path=dataset_path,
         start_datetime=start_datetime,
         apply_delay=apply_delay,
@@ -221,6 +219,27 @@ def prepare():
     base_name, ext = os.path.splitext(dataset_path)
     new_filepath = f"{base_name}_processed{ext}"
     df_processed.to_csv(new_filepath, index=False)
+
+
+@dataset.command()
+@click.argument("dataset_filepath")
+@click.argument("timestamp_column_name")
+@click.argument("cutoff_date")
+def batch(dataset_filepath, timestamp_column_name, cutoff_date):
+    """Prepare dataset for batch update by splitting it based on a cutoff date."""
+    click.echo(
+        f"Splitting dataset at {dataset_filepath} by cutoff date {cutoff_date} on column {timestamp_column_name}."
+    )
+
+    try:
+        utils_dataset.BatchDataset.split_dataset_by_cutoff(
+            dataset_path=dataset_filepath,
+            timestamp_column_name=timestamp_column_name,
+            cutoff_date=cutoff_date,
+        )
+        click.echo("Dataset successfully split into historic and new datasets.")
+    except Exception as e:
+        click.echo(f"Error during dataset splitting: {e}")
 
 
 @click.group()

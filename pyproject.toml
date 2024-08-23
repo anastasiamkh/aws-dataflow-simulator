@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "aws-dataflow-simulator"
-version = "0.2.0"
+version = "0.3.0"
 description = "A Python package for simulating data flows on AWS, including real-time streaming and batch processing for ML projects."
 authors = ["anastasiamkh <mlopsgeek@gmail.com>"]
 readme = "README.md"
@@ -11,10 +11,7 @@ dataflowsim = "aws_dataflow_simulator.cli:cli"
 
 [tool.poetry.dependencies]
 python = "^3.11"
-constructs = ">=10.0.0,<11.0.0"
-aws-cdk-lib = "2.151.0"
 boto3 = "^1.34.159"
-ruff = "^0.5.7"
 fire = "^0.6.0"
 pyyaml = "^6.0.2"
 pandas = "^2.2.2"
@@ -25,6 +22,9 @@ pytest = "^8.3.2"
 black = "^24.8.0"
 flake8 = "^7.1.1"
 localstack = "^3.6.0"
+ruff = "^0.6.2"
+aws-cdk-lib = "^2.154.1"
+constructs = "^10.3.0"
 
 [build-system]
 requires = ["poetry-core"]
