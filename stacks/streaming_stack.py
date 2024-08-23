@@ -72,12 +72,8 @@ class StreamingStack(Stack):
                 iam.ManagedPolicy.from_aws_managed_policy_name(
                     "service-role/AmazonECSTaskExecutionRolePolicy"
                 ),
-                iam.ManagedPolicy.from_aws_managed_policy_name(
-                    "AmazonKinesisFullAccess"
-                ),
-                iam.ManagedPolicy.from_aws_managed_policy_name(
-                    "AmazonS3ReadOnlyAccess"
-                ),
+                iam.ManagedPolicy.from_aws_managed_policy_name("AmazonKinesisFullAccess"),
+                iam.ManagedPolicy.from_aws_managed_policy_name("AmazonS3ReadOnlyAccess"),
             ],
         )
 
@@ -99,12 +95,12 @@ class StreamingStack(Stack):
         # Add a port mapping to the container
         container.add_port_mappings(ecs.PortMapping(container_port=80, host_port=80))
         # Define the Fargate service
-        fargate_service = ecs_patterns.ApplicationLoadBalancedFargateService(
+        fargate_service = ecs.FargateService(
             self,
             "FargateService",
             cluster=cluster,
+            desired_count=1,  # Adjust as needed
             task_definition=task_definition,
-            public_load_balancer=False,  # This sets whether the load balancer should be public or not
         )
         # Grant the necessary permissions to the task
         self.bucket.grant_read(task_role)

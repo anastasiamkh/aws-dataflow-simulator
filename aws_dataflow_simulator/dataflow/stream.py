@@ -37,7 +37,7 @@ class CSVtoStream:
 
         csv_reader = csv.DictReader(self.load_dataset())
 
-        logger.info(
+        logging.info(
             {
                 "message": "Starting Kinesis stream",
                 "dataset_filepath": self.dataset_filepath,
@@ -46,33 +46,43 @@ class CSVtoStream:
             }
         )
         # Skip the header row
-        header = next(csv_reader, None)
+        _ = next(csv_reader, None)
 
         # Process each row in the CSV file and send it to the Kinesis stream
         for row in csv_reader:
-            data = json.dumps(row)
-            logging.info(f"Streaming row to Kinesis: {data}")
+
+            if "time_till_next_event_ms" in row:
+                delay_ms = int(float(row["time_till_next_event_ms"]))
+            else:
+                delay_ms = None
+
+            # create event
+            del row["time_till_next_event_ms"]
+            event_data = json.dumps(row)
             self._kinesis_client.put_record(
                 StreamName=self.kinesis_stream_name,
-                Data=data,
+                Data=event_data,
                 PartitionKey=row[
                     next(iter(row))
                 ],  # Assuming the first column can be used as a partition key
             )
 
-            if "time_till_next_event_ms" in row:
-                delay_ms = int(float(row["time_till_next_event_ms"]))
-                logging.info(f"Applying delay of {delay_ms} ms before next event.")
-                time.sleep(delay_ms / 1000.0)
+            if delay_ms:
+                delay_seconds = delay_ms / 1000.0
+                logging.info(f"Applying delay of {delay_seconds}s before next event.")
+                time.sleep(delay_seconds)
 
-        logger.info(
+        logging.info(
             {
                 "message": "Streaming to Kinesis complete. No more rows to stream",
                 "dataset_filepath": self.dataset_filepath,
                 "s3_bucket": self.bucket_name,
                 "kinesis_stream_name": self.kinesis_stream_name,
+                "event_data": event_data,
             }
         )
+        # garbage collction
+        del event_data, delay_ms, delay_seconds
 
         return {"statusCode": 200, "body": "Finished streaming data."}
 

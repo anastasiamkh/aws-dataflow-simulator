@@ -41,10 +41,13 @@ docker-push:
 	docker tag csv-to-kinesis:latest ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/csv-to-kinesis-repo:latest &&\
 	docker push ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/csv-to-kinesis-repo:latest
 
-deploy-stacks:
+deploy-stream-stack:
 	cdk deploy S3BucketStack &&\
 	poetry run dataflowsim s3 upload data/example_dataset_processed.csv data/example_dataset_processed.csv csv-to-kinesis-bucket &&\
 	cdk deploy StreamingStack
+
+deploy-batch-stack:
+	echo 'not implemented'
 
 depstroy-stacks:
 	cdk destroy

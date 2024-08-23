@@ -50,12 +50,13 @@ def decode_data(base64_data):
 
 
 def process_stream():
-    header = get_csv_header()
+    _ = get_csv_header()
     # Describe the stream to get shard IDs
     stream_description = kinesis_client.describe_stream(StreamName=STREAM_NAME)
     shards = stream_description["StreamDescription"]["Shards"]
+    print(shards)
 
-    for shard in shards:
+    for shard in shards[1:]:
         shard_id = shard["ShardId"]
         print(f"Processing shard: {shard_id}")
 
@@ -75,10 +76,7 @@ def process_stream():
                 print(record)
                 # Decode the base64-encoded data
                 decoded_data = record["Data"].decode("utf-8")
-
-                # Convert the row data to a dictionary using the header
-                row_dict = row_to_dict(decoded_data, header)
-                print(f"Event data: {row_dict}")
+                print(decoded_data)
 
             # Move to the next shard iterator
             shard_iterator = records_response.get("NextShardIterator")

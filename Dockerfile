@@ -1,7 +1,7 @@
 # Use the official Python 3.11 slim base image
 FROM python:3.11-slim
 
-RUN apt-get update && apt-get install -y gcc libpq-dev
+RUN apt-get update && apt-get install -y gcc libpq-dev && pip install --upgrade pip
 
 # Set the working directory
 WORKDIR /app
