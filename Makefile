@@ -14,7 +14,7 @@ unit-tests:
 	poetry run pytest tests/
 
 docker-build:
-	docker buildx build --platform=linux/amd64 -t csv-to-kinesis-image .
+	docker buildx build --platform=linux/amd64 --no-cache -t csv-to-kinesis-image .
 
 docker-start:
 	docker run -d -p 80:80 --platform=linux/amd64 \
@@ -41,10 +41,13 @@ docker-push:
 	docker tag csv-to-kinesis:latest ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/csv-to-kinesis-repo:latest &&\
 	docker push ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/csv-to-kinesis-repo:latest
 
-deploy-stacks:
+deploy-stream-stack:
 	cdk deploy S3BucketStack &&\
-	poetry run python src/utils_s3.py upload_file_to_s3 'csv-to-kinesis-bucket' 'data/credit_record.csv' &&\
+	poetry run dataflowsim s3 upload data/example_dataset_processed.csv data/example_dataset_processed.csv csv-to-kinesis-bucket &&\
 	cdk deploy StreamingStack
+
+deploy-batch-stack:
+	echo 'not implemented'
 
 depstroy-stacks:
 	cdk destroy

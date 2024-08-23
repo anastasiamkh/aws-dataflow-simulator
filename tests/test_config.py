@@ -4,7 +4,7 @@ import pytest
 from unittest.mock import patch, mock_open
 
 # Assuming the configuration functions are in a module named config
-from src.config import (
+from aws_dataflow_simulator.config import (
     get_dataset_filepath,
     get_s3_bucket_name,
     get_kinesis_stream_name,
@@ -27,7 +27,7 @@ mock_aws_config = {
 
 @pytest.fixture
 def mock_config():
-    with patch.dict("src.config.aws_config", mock_aws_config):
+    with patch.dict("aws_dataflow_simulator.config.aws_config", mock_aws_config):
         yield
 
 
@@ -46,7 +46,9 @@ def test_get_s3_bucket_name_missing_value(mock_config):
         },
         "dataset": {"filepath": "/data/test.csv"},
     }
-    with patch.dict("src.config.aws_config", broken_yaml_content_missing_s3):
+    with patch.dict(
+        "aws_dataflow_simulator.config.aws_config", broken_yaml_content_missing_s3
+    ):
         with pytest.raises(
             KeyError, match="No value set for aws s3_bucket_name in config.yaml"
         ):
@@ -75,7 +77,9 @@ def test_get_ecr_repo_name_missing_value(mock_config):
         },
         "dataset": {"filepath": "/data/test.csv"},
     }
-    with patch.dict("src.config.aws_config", broken_yaml_content_missing_ecr):
+    with patch.dict(
+        "aws_dataflow_simulator.config.aws_config", broken_yaml_content_missing_ecr
+    ):
         with pytest.raises(
             KeyError, match="No value set for aws ecr_repo_name in config.yaml"
         ):

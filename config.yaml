@@ -1,9 +1,0 @@
-aws:
-  s3_bucket_name: 'your-bucket-name'
-  ecr_repo_name: "your-ecr-repo-name"
-  notifications_email: "your.email@domain.com"
-  cloudwatch_billing_alarm_threshold_eur: 20
-
-dataset:
-  filepath: 'data/sample_dataset.csv'
-  s3_filepath: 'data/sample_dataset.csv'

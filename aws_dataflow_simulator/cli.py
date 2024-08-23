@@ -5,6 +5,7 @@ import os
 from datetime import datetime
 
 from aws_dataflow_simulator import config, utils_dataset
+from aws_dataflow_simulator.dataflow import stream as dataflow_stream
 
 
 @click.group()
@@ -222,9 +223,28 @@ def prepare():
     df_processed.to_csv(new_filepath, index=False)
 
 
+@click.group()
+def flow():
+    """Commands for data flow operations."""
+    pass
+
+
+@flow.command()
+def stream():
+    """Preparing dataset for streaming."""
+    dataflow_stream.CSVtoStream().start_stream()
+
+
+@flow.command()
+def batch():
+    """Preparing dataset for batch update."""
+    pass
+
+
 # Add the s3 and dataset groups to the main CLI group
 cli.add_command(s3)
 cli.add_command(dataset)
+cli.add_command(flow)
 
 # Usage example
 # `poetry run dataflowsim s3 upload path/to/local/file.csv s3_key --bucket-name your-s3-bucket``
