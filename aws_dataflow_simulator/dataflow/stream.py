@@ -61,7 +61,7 @@ class CSVtoStream:
             )
 
             if "time_till_next_event_ms" in row:
-                delay_ms = int(row["time_till_next_event_ms"])
+                delay_ms = int(float(row["time_till_next_event_ms"]))
                 logging.info(f"Applying delay of {delay_ms} ms before next event.")
                 time.sleep(delay_ms / 1000.0)
 
