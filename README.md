@@ -39,6 +39,8 @@ https://github.com/aws-samples/localstack-aws-cdk-example
 3. Deploy local stack
 `cdk deploy --require-approval never`
 
+# dummy
+
 # To Do List
 - [x] Add time delay to streaming based on timestamp difference between rows
 - [x] add interactive config.yaml generator that overwrites the template
