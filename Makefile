@@ -49,5 +49,9 @@ deploy-stream-stack:
 deploy-batch-stack:
 	echo 'not implemented'
 
-depstroy-stacks:
+destroy-stacks:
 	cdk destroy
+
+get-db-secret-name:
+	aws cloudformation describe-stacks --stack-name BatchStack --query "Stacks[0].Outputs[?OutputKey=='DbSecretName'].OutputValue" --output text
+

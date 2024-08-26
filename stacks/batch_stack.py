@@ -1,3 +1,4 @@
+import aws_cdk as core
 from aws_cdk import (
     Stack,
     aws_rds as rds,
@@ -13,6 +14,8 @@ from constructs import Construct
 
 DB_NAME = "dataflow"
 
+# RDS Instance types: https://aws.amazon.com/rds/instance-types/
+
 
 class BatchStack(Stack):
 
@@ -22,32 +25,39 @@ class BatchStack(Stack):
         # Create a VPC for the RDS instance and Lambda function
         vpc = ec2.Vpc(self, "MyVpc", max_azs=2)
 
-        # # Create an RDS database instance (PostgreSQL in this example)
-        # rds_instance = rds.DatabaseInstance(
-        #     self,
-        #     "RDSInstance",
-        #     database_name=DB_NAME,
-        #     engine=rds.DatabaseInstanceEngine.postgres(
-        #         version=rds.PostgresEngineVersion.VER_13_3
-        #     ),
-        #     instance_type=ec2.InstanceType.of(
-        #         ec2.InstanceClass.BURSTABLE2, ec2.InstanceSize.MICRO
-        #     ),
-        #     vpc=vpc,
-        #     vpc_subnets={
-        #         "subnet_type": ec2.SubnetType.PUBLIC,
-        #     },
-        #     multi_az=False,
-        #     allocated_storage=20,
-        #     storage_type=rds.StorageType.GP2,
-        #     publicly_accessible=True,
-        #     removal_policy=RemovalPolicy.DESTROY,
-        #     deletion_protection=False,
-        #     backup_retention=Duration.days(7),
-        #     credentials=rds.Credentials.from_generated_secret("postgres"),
-        # )
+        # Create an RDS database instance (PostgreSQL in this example)
+        rds_instance = rds.DatabaseInstance(
+            self,
+            "RDSInstance",
+            database_name=DB_NAME,
+            engine=rds.DatabaseInstanceEngine.postgres(
+                version=rds.PostgresEngineVersion.VER_16_3
+            ),
+            instance_type=ec2.InstanceType.of(
+                ec2.InstanceClass.BURSTABLE3, ec2.InstanceSize.MICRO
+            ),
+            vpc=vpc,
+            vpc_subnets={
+                "subnet_type": ec2.SubnetType.PUBLIC,
+            },
+            multi_az=False,
+            allocated_storage=20,
+            storage_type=rds.StorageType.GP2,
+            publicly_accessible=True,
+            removal_policy=RemovalPolicy.DESTROY,
+            deletion_protection=False,
+            backup_retention=Duration.days(7),
+            credentials=rds.Credentials.from_generated_secret("postgres"),
+        )
 
-        # # Create a Lambda function
+        # Output the RDS instance endpoint for testing
+        core.CfnOutput(
+            self, "RdsEndpoint", value=rds_instance.db_instance_endpoint_address
+        )
+        # Output the secret name for use in other parts of your infrastructure
+        core.CfnOutput(self, "DbSecretName", value=rds_instance.secret.secret_name)
+
+        # Create a Lambda function
         # lambda_function = _lambda.Function(
         #     self,
         #     "UpdateDatabaseunction",
@@ -61,6 +71,7 @@ class BatchStack(Stack):
         #         "DB_NAME": DB_NAME,
         #         "DB_USER": "postgres",
         #         "DB_PORT": "5432",
+        #         "DB_SECRET_NAME": rds_instance.secret.secret_name,
         #         # 'DB_PASSWORD': stored in Secrets Manager, referenced by Lambda
         #     },
         #     vpc=vpc,

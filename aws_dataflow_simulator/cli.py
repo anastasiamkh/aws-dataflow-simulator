@@ -4,7 +4,7 @@ import yaml
 import os
 from datetime import datetime
 
-from aws_dataflow_simulator import config, utils_dataset
+from aws_dataflow_simulator import config, utils_dataset, utils_rds
 from aws_dataflow_simulator.dataflow import stream as dataflow_stream
 
 
@@ -183,6 +183,28 @@ def download(s3_key, file_path, bucket_name):
         click.echo(f"File s3://{bucket_name}/{s3_key} downloaded to {file_path}")
     except Exception as e:
         click.echo(f"Error downloading file: {e}")
+
+
+@click.group()
+def rds():
+    """Commands for RDS operations."""
+    pass
+
+
+@rds.command()
+@click.argument("file_path")
+@click.argument("table_name")
+@click.argument("index_colname")
+@click.option("--confirm", is_flag=True, help="Confirm before uploading")
+def create_table(table_name, file_path, index_colname, confirm):
+    """Upload a file to S3."""
+    if confirm:
+        if not click.confirm(f"Are you sure you want to create {table_name} RDS table"):
+            click.echo("Create cancelled.")
+            return
+    utils_rds.create_table(
+        table_name=table_name, file_path=file_path, index_colname=index_colname
+    )
 
 
 @click.group()
